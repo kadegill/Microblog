@@ -28,8 +28,8 @@ class User(UserMixin, db.Model):
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password: str) -> bool:
-        if self.password_hash is None:
+    def check_password(self, password: str | None) -> bool:
+        if self.password_hash is None or password is None:
             return False
         return check_password_hash(self.password_hash, password)
 
