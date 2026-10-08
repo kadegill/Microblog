@@ -5,9 +5,10 @@ from wtforms import (
     PasswordField,
     StringField,
     SubmitField,
+    TextAreaField,
     ValidationError,
 )
-from wtforms.validators import DataRequired, Email, EqualTo
+from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 from app import db
 from app.models import User
@@ -35,4 +36,9 @@ class RegistrationForm(FlaskForm):
         user = db.session.scalar(sql.select(User).where(User.email == email.data))
         if user is not None:
             raise ValidationError('Please enter a valid email address or use a different one.')
+
+class EditProfileForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    about_me = TextAreaField('About me', validators=[Length(min=0, max=140)])
+    submit = SubmitField('Submit')
         
