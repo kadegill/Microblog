@@ -68,3 +68,14 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/user/<username>')
+@login_required
+def user(username):
+    user = db.first_or_404(sql.select(User).where(User.username == username))
+    posts = [
+        {'author': user, 'body': 'Test post 1'},
+        {'author': user, 'body': 'Test post 2'},
+        {'author': user, 'body': 'Test post 3'}
+    ]
+    return render_template('user.html', user=user, posts=posts)
