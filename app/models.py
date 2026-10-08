@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from hashlib import md5
 
 import sqlalchemy as sql
 from flask_login import UserMixin
@@ -11,6 +12,7 @@ from app import db, login
 @login.user_loader
 def load_user(id: str):
     return db.session.get(User, int(id))
+
 
 class User(UserMixin, db.Model):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
@@ -32,6 +34,10 @@ class User(UserMixin, db.Model):
         if self.password_hash is None or password is None:
             return False
         return check_password_hash(self.password_hash, password)
+
+    def avatar(self, size: int) -> str:
+        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
 
 class Post(db.Model):
