@@ -17,11 +17,11 @@ def load_user(id: str):
 class User(UserMixin, db.Model):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     username: orm.Mapped[str] = orm.mapped_column(sql.String(64), index=True, unique=True)
-    
     email: orm.Mapped[str] = orm.mapped_column(sql.String(120), index=True, unique=True)
-    
     password_hash: orm.Mapped[str | None] = orm.mapped_column(sql.String(256))
 
+    about_me: orm.Mapped[str | None] = orm.mapped_column(sql.String(140))
+    last_seen: orm.Mapped[datetime | None] = orm.mapped_column(sql.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
     posts: orm.WriteOnlyMapped['Post'] = orm.relationship(back_populates='author')
 
     def __repr__(self) -> str:
