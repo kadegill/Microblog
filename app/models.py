@@ -1,12 +1,18 @@
 from datetime import datetime, timezone
 
 import sqlalchemy as sql
+from flask_login import UserMixin
 from sqlalchemy import orm
+from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import db
+from app import db, login
 
 
-class User(db.Model):
+@login.user_loader
+def load_user(id: str):
+    return db.session.get(User, int(id))
+
+class User(UserMixin, db.Model):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     username: orm.Mapped[str] = orm.mapped_column(sql.String(64), index=True, unique=True)
     
@@ -18,6 +24,14 @@ class User(db.Model):
 
     def __repr__(self) -> str:
         return f'<User {format(self.username)}>'
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        if self.password_hash is None:
+            return False
+        return check_password_hash(self.password_hash, password)
 
 
 class Post(db.Model):
