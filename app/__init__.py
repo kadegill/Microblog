@@ -15,4 +15,4 @@ login = LoginManager(app)
 login.login_view = 'login' # type: ignore
 
 
-from app import models, routes  # noqa: F401
+from app import errors, models, routes  # noqa: F401
