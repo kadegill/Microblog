@@ -14,6 +14,8 @@ class User(db.Model):
     
     password_hash: orm.Mapped[str | None] = orm.mapped_column(sql.String(256))
 
+    posts: orm.WriteOnlyMapped['Post'] = orm.relationship(back_populates='author')
+
     def __repr__(self) -> str:
         return f'<User {format(self.username)}>'
 
