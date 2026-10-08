@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 import sqlalchemy as sql
@@ -79,3 +80,9 @@ def user(username):
         {'author': user, 'body': 'Test post 3'}
     ]
     return render_template('user.html', user=user, posts=posts)
+
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.now(timezone.utc) # type: ignore
+        db.session.commit()
