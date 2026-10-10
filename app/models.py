@@ -8,6 +8,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, login
 
+followers = sql.Table(
+    'followers',
+    db.metadata,
+    sql.Column('follower_id', sql.Integer, sql.ForeignKey('user.id'), primary_key=True),
+    sql.Column('followed_id', sql.Integer, sql.ForeignKey('user.id'), primary_key=True)
+)
+
 
 @login.user_loader
 def load_user(id: str):
@@ -21,8 +28,21 @@ class User(UserMixin, db.Model):
     password_hash: orm.Mapped[str | None] = orm.mapped_column(sql.String(256))
 
     about_me: orm.Mapped[str | None] = orm.mapped_column(sql.String(140))
-    last_seen: orm.Mapped[datetime | None] = orm.mapped_column(sql.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
+    last_seen: orm.Mapped[datetime | None] = orm.mapped_column(sql.DateTime, index=True, default=lambda: datetime.now(timezone.utc)) 
     posts: orm.WriteOnlyMapped['Post'] = orm.relationship(back_populates='author')
+
+    following: orm.WriteOnlyMapped['User'] = orm.relationship(
+        secondary=followers,
+        primaryjoin=(followers.c.follower_id == id),
+        secondaryjoin=(followers.c.followed_id == id),
+        back_populates='followers'
+    )
+    followers: orm.WriteOnlyMapped['User'] = orm.relationship(
+        secondary=followers,
+        primaryjoin=(followers.c.followed_id == id),
+        secondaryjoin=(followers.c.follower_id == id),
+        back_populates='following'
+    )
 
     def __repr__(self) -> str:
         return f'<User {format(self.username)}>'
