@@ -90,7 +90,7 @@ class User(UserMixin, db.Model):
                 Follower.id == self.id,
                 Author.id == self.id,
                 ))
-                .group_by(Post)
+                .group_by(Post) # type: ignore
             .order_by(Post.timestamp.desc())
         )
 
