@@ -3,7 +3,7 @@ from hashlib import md5
 
 import sqlalchemy as sql
 from flask_login import UserMixin
-from sqlalchemy import orm
+from sqlalchemy import Select, orm
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, login
@@ -59,6 +59,36 @@ class User(UserMixin, db.Model):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
+    def follow(self, user: 'User') -> None:
+        if not self.is_following(user):
+            self.following.add(user)
+
+    def unfollow(self, user: 'User') -> None:
+        if self.is_following(user):
+            self.following.remove(user)
+
+    def is_following(self, user: 'User') -> bool:
+        query = self.following.select().where(User.id ==  user.id)
+        return db.session.scalar(query) is not None
+
+    def followers_count(self) -> int | None:
+        query = sql.select(sql.func.count()).select_from(self.followers.select().subquery())
+        return db.session.scalar(query)
+
+    def following_count(self) -> int | None:
+        query = sql.select(sql.func.count()).select_from(self.following.select().subquery())
+        return db.session.scalar(query)
+
+    def following_posts(self) -> Select['Post']:
+        Author = orm.aliased(User)
+        Follower = orm.aliased(User)
+        return (
+            sql.select(Post)
+            .join(Post.author.of_type(Author))
+            .join(Author.followers.of_type(Follower))
+            .where(Follower.id == self.id)
+            .order_by(Post.timestamp.desc())
+        )
 
 class Post(db.Model):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
